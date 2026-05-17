@@ -1,0 +1,14 @@
+const mongoose = require('mongoose');
+
+const OutfitSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  items: [{
+    id: String,
+    name: String,
+    type: String,
+    image: String
+  }],
+  createdAt: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model('Outfit', OutfitSchema);
