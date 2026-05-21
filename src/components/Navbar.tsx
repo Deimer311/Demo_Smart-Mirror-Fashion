@@ -21,6 +21,7 @@ const Navbar = () => {
     { name: 'Cómo funciona', href: '#how-it-works' },
     { name: 'Beneficios', href: '#benefits' },
     { name: 'Demo', href: '#demo' },
+    { name: 'Estudio Try-On', href: '#tryon-studio' },
   ];
 
   return (

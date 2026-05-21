@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Heart, Share2, Info, Camera, CameraOff, Sparkles, Loader2 } from 'lucide-react';
 import { useMirrorStore, Garment } from '@/store/useMirrorStore';
+import { usePoseSmoother } from '@/hooks/usePoseSmoother';
+import { renderWarpedGarment } from '@/utils/canvasWarp';
 import Script from 'next/script';
 
 declare global {
@@ -14,9 +16,9 @@ declare global {
 }
 
 const garments: Garment[] = [
-  { id: '1', name: 'Chaqueta Urban Noir', type: 'top', image: '/garments/top-1.png', color: 'bg-zinc-800', price: '$89.00' },
-  { id: '2', name: 'Vestido Rose Silk', type: 'full', image: '/garments/full-1.png', color: 'bg-rose-200', price: '$120.00' },
-  { id: '3', name: 'Camisa Ocean Breeze', type: 'top', image: '/garments/top-2.png', color: 'bg-blue-300', price: '$45.00' },
+  { id: '1', name: 'Chaqueta Urban Noir', type: 'top', image: '/garments/top-1.svg', color: 'bg-zinc-800', price: '$89.00' },
+  { id: '2', name: 'Vestido Rose Silk', type: 'full', image: '/garments/full-1.svg', color: 'bg-rose-200', price: '$120.00' },
+  { id: '3', name: 'Camisa Ocean Breeze', type: 'top', image: '/garments/top-2.svg', color: 'bg-blue-300', price: '$45.00' },
 ];
 
 const MirrorDemo = () => {
@@ -31,6 +33,27 @@ const MirrorDemo = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number>(null);
   const detectorRef = useRef<any>(null);
+  const garmentImgRef = useRef<HTMLImageElement | null>(null);
+
+  // Initialize Pose Smoother (One Euro Filter)
+  const { smoothPose, resetFilters } = usePoseSmoother();
+
+  // Load garment image when selected
+  useEffect(() => {
+    if (selectedGarment) {
+      const img = new Image();
+      img.src = selectedGarment.image;
+      img.onload = () => {
+        garmentImgRef.current = img;
+      };
+      img.onerror = () => {
+        console.error('Failed to load garment image:', selectedGarment.image);
+        garmentImgRef.current = null;
+      };
+    } else {
+      garmentImgRef.current = null;
+    }
+  }, [selectedGarment]);
 
   // Initialize AI Model from CDN
   const initModel = async () => {
@@ -58,15 +81,16 @@ const MirrorDemo = () => {
       const poses = await detectorRef.current.estimatePoses(videoRef.current);
       
       if (poses.length > 0) {
-        const landmarks = poses[0].keypoints;
-        setPoseLandmarks(landmarks);
-        drawPose(landmarks);
+        const rawLandmarks = poses[0].keypoints;
+        const smoothed = smoothPose(rawLandmarks);
+        setPoseLandmarks(smoothed);
+        drawPose(smoothed);
       } else {
         clearCanvas();
       }
     }
     requestRef.current = requestAnimationFrame(detect);
-  }, [setPoseLandmarks]);
+  }, [setPoseLandmarks, smoothPose]);
 
   useEffect(() => {
     if (isCameraActive) {
@@ -89,8 +113,8 @@ const MirrorDemo = () => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // 1. Draw Skeleton (Optional, for debugging)
-    drawSkeleton(ctx, keypoints);
+    // 1. Draw Skeleton (Debugging)
+    // drawSkeleton(ctx, keypoints);
 
     // 2. Draw Virtual Garment
     if (selectedGarment) {
@@ -110,44 +134,29 @@ const MirrorDemo = () => {
   };
 
   const drawGarment = (ctx: CanvasRenderingContext2D, keypoints: any[], garment: Garment) => {
-    // MoveNet Landmarks: 5: Left Shoulder, 6: Right Shoulder, 11: Left Hip, 12: Right Hip
-    const ls = keypoints[5];
-    const rs = keypoints[6];
-    const lh = keypoints[11];
-    const rh = keypoints[12];
+    if (garmentImgRef.current && garmentImgRef.current.complete) {
+      renderWarpedGarment(ctx, garmentImgRef.current, garment.type, keypoints);
+    } else {
+      // Fallback block drawing if image is not yet loaded
+      const ls = keypoints[5];
+      const rs = keypoints[6];
+      if (!ls || !rs || ls.score < 0.3 || rs.score < 0.3) return;
 
-    if (!ls || !rs || ls.score < 0.3 || rs.score < 0.3) return;
+      const centerX = (ls.x + rs.x) / 2;
+      const centerY = (ls.y + rs.y) / 2;
+      const shoulderWidth = Math.sqrt(Math.pow(rs.x - ls.x, 2) + Math.pow(rs.y - ls.y, 2));
+      const scale = shoulderWidth * 2.5;
+      const angle = Math.atan2(rs.y - ls.y, rs.x - ls.x);
 
-    // Calculate center of shoulders
-    const centerX = (ls.x + rs.x) / 2;
-    const centerY = (ls.y + rs.y) / 2;
-
-    // Calculate width (distance between shoulders)
-    const shoulderWidth = Math.sqrt(Math.pow(rs.x - ls.x, 2) + Math.pow(rs.y - ls.y, 2));
-    const scale = shoulderWidth * 2.5; // Multiplier for garment size
-
-    // Calculate rotation
-    const angle = Math.atan2(rs.y - ls.y, rs.x - ls.x);
-
-    // Draw placeholder rectangle (in real app, use Image object)
-    ctx.save();
-    ctx.translate(centerX, centerY + (garment.type === 'top' ? shoulderWidth * 0.5 : 0));
-    ctx.rotate(angle);
-    
-    // Draw stylized garment representation
-    ctx.fillStyle = garment.color === 'bg-zinc-800' ? '#18181b' : 
-                   garment.color === 'bg-rose-200' ? '#fecdd3' : '#93c5fd';
-    ctx.globalAlpha = 0.7;
-    
-    if (garment.type === 'top') {
-      // Draw a "shirt" shape
-      ctx.fillRect(-scale/2, 0, scale, scale * 1.2);
-    } else if (garment.type === 'full') {
-      // Draw a "dress" shape
-      ctx.fillRect(-scale/2, 0, scale, scale * 2);
+      ctx.save();
+      ctx.translate(centerX, centerY + (garment.type === 'top' ? shoulderWidth * 0.5 : 0));
+      ctx.rotate(angle);
+      ctx.fillStyle = garment.color === 'bg-zinc-800' ? '#18181b' : 
+                     garment.color === 'bg-rose-200' ? '#fecdd3' : '#93c5fd';
+      ctx.globalAlpha = 0.5;
+      ctx.fillRect(-scale/2, 0, scale, garment.type === 'top' ? scale * 1.2 : scale * 2);
+      ctx.restore();
     }
-    
-    ctx.restore();
   };
 
   const clearCanvas = () => {
@@ -188,6 +197,7 @@ const MirrorDemo = () => {
         stream.getTracks().forEach(track => track.stop());
       }
       setCameraActive(false);
+      resetFilters();
     } else {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ 

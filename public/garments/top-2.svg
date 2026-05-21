@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="linen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#bae6fd"/>
+      <stop offset="60%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="fabric-shading" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.15"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0284c7" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#soft-shadow)">
+    <!-- Back Collar Stand -->
+    <path d="M 140 85 C 140 68, 260 68, 260 85 L 245 98 C 220 90, 180 90, 155 98 Z" fill="#0369a1"/>
+
+    <!-- Left Sleeve -->
+    <path d="M 130 85 C 90 100, 65 130, 45 190 L 85 205 C 100 165, 115 135, 130 115 Z" fill="url(#linen)"/>
+    <!-- Left Sleeve Cuff -->
+    <path d="M 45 190 L 85 205 L 82 212 L 42 197 Z" fill="#0284c7" opacity="0.5"/>
+
+    <!-- Right Sleeve -->
+    <path d="M 270 85 C 310 100, 335 130, 355 190 L 315 205 C 300 165, 285 135, 270 115 Z" fill="url(#linen)"/>
+    <!-- Right Sleeve Cuff -->
+    <path d="M 355 190 L 315 205 L 318 212 L 358 197 Z" fill="#0284c7" opacity="0.5"/>
+
+    <!-- Main Torso Body -->
+    <path d="M 130 90 C 130 90, 180 102, 200 102 C 220 102, 270 90, 270 90 L 285 390 C 260 410, 140 410, 115 390 Z" fill="url(#linen)"/>
+    <path d="M 130 90 C 130 90, 180 102, 200 102 C 220 102, 270 90, 270 90 L 285 390 C 260 410, 140 410, 115 390 Z" fill="url(#fabric-shading)" opacity="0.7"/>
+
+    <!-- Left Collar Point -->
+    <path d="M 140 85 L 180 135 L 200 102 L 155 98 Z" fill="#e0f2fe" stroke="#0284c7" stroke-width="0.5"/>
+    <!-- Right Collar Point -->
+    <path d="M 260 85 L 220 135 L 200 102 L 245 98 Z" fill="#e0f2fe" stroke="#0284c7" stroke-width="0.5"/>
+
+    <!-- Button Placket -->
+    <path d="M 197 102 L 197 400 L 203 400 L 203 102 Z" fill="#0284c7" opacity="0.3"/>
+    
+    <!-- Buttons -->
+    <circle cx="200" cy="150" r="3.5" fill="#f0f9ff" stroke="#0284c7" stroke-width="0.5"/>
+    <circle cx="200" cy="210" r="3.5" fill="#f0f9ff" stroke="#0284c7" stroke-width="0.5"/>
+    <circle cx="200" cy="270" r="3.5" fill="#f0f9ff" stroke="#0284c7" stroke-width="0.5"/>
+    <circle cx="200" cy="330" r="3.5" fill="#f0f9ff" stroke="#0284c7" stroke-width="0.5"/>
+
+    <!-- Chest Pocket (Left Side) -->
+    <path d="M 145 160 L 175 160 L 175 200 C 175 205, 145 205, 145 200 Z" fill="url(#linen)"/>
+    <path d="M 145 160 L 175 160 L 175 200 C 175 205, 145 205, 145 200 Z" fill="#ffffff" opacity="0.15"/>
+    <path d="M 145 160 L 175 160" stroke="#0284c7" stroke-width="1.5" opacity="0.5"/>
+    
+    <!-- Fabric Creases (Linen texture feel) -->
+    <path d="M 130 140 Q 150 150 160 145" fill="none" stroke="#bae6fd" stroke-width="1.5" opacity="0.6"/>
+    <path d="M 270 170 Q 250 180 240 175" fill="none" stroke="#bae6fd" stroke-width="1.5" opacity="0.6"/>
+    <path d="M 125 280 Q 155 295 190 280" fill="none" stroke="#bae6fd" stroke-width="1" opacity="0.4"/>
+    <path d="M 275 310 Q 245 325 210 310" fill="none" stroke="#bae6fd" stroke-width="1" opacity="0.4"/>
+  </g>
+</svg>
